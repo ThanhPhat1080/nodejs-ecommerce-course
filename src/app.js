@@ -1,16 +1,15 @@
-import express from "express";
-import dotenv from "dotenv";
-import morgan from "morgan";
-import helmet from "helmet";
 import compression from "compression";
+import dotenv from "dotenv";
+import express from "express";
+import helmet from "helmet";
+import morgan from "morgan";
 
+import MongoDB from "./dbs/init.mongodb.js";
+import checkConnect from "./helpers/check.connect.js";
 
 dotenv.config();
 
 const app = express();
-
-
-/* Init middleware */
 // Express middlewares
 app.use(express.json());
 
@@ -20,6 +19,9 @@ app.use(helmet());
 app.use(compression());
 
 /* Init DB */
+MongoDB.getInstance();
+console.log("MongoDB connected: ", checkConnect.countConnect());
+checkConnect.checkOverload();
 
 /* Init routes */
 app.get("/", (req, res) => {
