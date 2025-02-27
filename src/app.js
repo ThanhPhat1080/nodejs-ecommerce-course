@@ -1,3 +1,5 @@
+'use strict'
+
 import compression from 'compression';
 import dotenv from 'dotenv';
 import express from 'express';
@@ -12,6 +14,7 @@ dotenv.config();
 const app = express();
 // Express middlewares
 app.use(express.json());
+app.use(express.urlencoded({extended: true}))
 
 // Other middleware
 app.use(process.env.NODE_ENV === 'development' ? morgan('tiny') : morgan('common'));

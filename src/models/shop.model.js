@@ -45,4 +45,4 @@ const shopSchema = new mongoose.Schema(
 );
 
 //Export the model
-export const User = mongoose.model(DOCUMENT_NAME, shopSchema);
+export default mongoose.model(DOCUMENT_NAME, shopSchema);
