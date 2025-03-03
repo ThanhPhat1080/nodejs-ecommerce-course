@@ -27,8 +27,29 @@ const apiKey = async (req, res, next) => {
     req.objectKey = objectKey;
 
     return next();
-  } catch (error) {}
+  } catch (error) { }
 };
 
-export { apiKey };
+const permission = (permission) => {
+  return (req, res, next) => {
+    if (!req.objectKey.permissions) {
+      return res.status(403).json({ message: "Permission denied!" })
+    }
+
+    const validPermission = req.objectKey.permissions.includes(permission)
+    if (!validPermission) {
+      return res.status(403).json({ message: "Permission denied!" })
+
+    }
+    return next()
+  }
+};
+
+const asyncHandler = fn => {
+  return (req, res, next) => {
+    fn(req, res, next).catch(next)
+  }
+}
+
+export { apiKey, asyncHandler, permission };
 

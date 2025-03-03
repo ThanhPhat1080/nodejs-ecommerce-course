@@ -29,5 +29,20 @@ MongoDB.getInstance();
 app.use(router);
 
 /* Handling errors */
+app.use((req,res, next) => {
+  const error = new Error('Not Found!')
+  error.status = 404;
+
+  next(error);
+})
+
+app.use((error, req,res, next) => {
+ const status = error.status || 500
+  return res.status(status).json({
+    status: 'Error',
+    statusCode: status,
+    message: error.message || 'Internal Server Error!'
+  })
+})
 
 export default app;
