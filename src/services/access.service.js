@@ -1,85 +1,98 @@
-'use strict'
+'use strict';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import { createTokenPair } from '../auth/authUtils';
-import ShopModel from '../models/shop.model';
-import KeyTokenService from '../services/keyToken.service';
+import { createTokenPair } from '../auth/authUtils.js';
+import ShopModel from '../models/shop.model.js';
+import KeyTokenService from '../services/keyToken.service.js';
+import { getInfoData } from '../utils/index.js';
 
 const roleShop = {
   SHOP: 'SHOP',
   WRITE: 'WRITE',
   EDITOR: 'EDITOR',
-  ADMIN: 'ADMIN'
-}
+  ADMIN: 'ADMIN',
+};
 
 class AccessService {
-  static signUp = async ({name, email, password}) => {
+  static signUp = async ({ name, email, password }) => {
     try {
-      const shopOwner = await ShopModel.findOne({email}).lean();
+      const shopOwner = await ShopModel.findOne({ email }).lean();
       if (shopOwner) {
         return {
           code: 'xxx',
-          message: "Existing"
-        }
+          message: 'Existing',
+        };
       }
 
-      const passwordHash = await bcrypt.hash(password, 10)
+      const passwordHash = await bcrypt.hash(password, 10);
       const newShop = await ShopModel.create({
         name,
         email,
         password: passwordHash,
-        roles: roleShop.SHOP
+        roles: roleShop.SHOP,
       });
 
-      if(newShop) {
-        const {privateKey, publicKey} = crypto.generateKeyPairSync('rsa', {
-          modulusLength: 4096,
-          publicKeyEncoding: {
-            type: 'pkcs1',
-            format: 'pem'
-          },
-          privateKeyEncoding: {
-            type: 'pkcs1',
-            format: 'pem'
-          }
-        })
-        console.log('dddd', {privateKey, publicKey}); //save collection key store
+      if (newShop) {
+        /**
+         * Create Key in Advance way
+         */
+        // const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
+        //   modulusLength: 4096,
+        //   publicKeyEncoding: {
+        //     type: 'pkcs1',
+        //     format: 'pem',
+        //   },
+        //   privateKeyEncoding: {
+        //     type: 'pkcs1',
+        //     format: 'pem',
+        //   },
+        // });
 
+        /**
+         * Create Key in Basic way
+         */
+        const typedArray = new Uint32Array(10);
+        const privateKey = crypto.getRandomValues(typedArray).toString('hex');
+        const publicKey = crypto.getRandomValues(typedArray).toString('hex');
+        console.log('dddd', { privateKey, publicKey }); //save collection key store
 
-        const publicKeyString = await KeyTokenService.createKeyToken({
+        const keyStore = await KeyTokenService.createKeyToken({
           userId: newShop._id,
-          publicKey
+          publicKey,
+          privateKey,
         });
 
-        if (!publicKeyString) {
+        if (!keyStore) {
           return {
             code: 'xxx',
-            message: 'PublicKeyString error'
+            message: 'Store keys error',
           };
         }
 
-        const publicKeyObject = crypto.createPublicKey(publicKeyString)
-        const tokens = await createTokenPair({userId: newShop._id, email}, publicKeyObject, privateKey)
-        console.log('tokens', tokens);
+        const tokens = createTokenPair({
+          payload: { userId: newShop._id, email },
+          publicKey,
+          privateKey,
+        });
 
         return {
           code: 201,
           metadata: {
-            shop: newShop,
-            tokens
-          }
-        }
+            shop: getInfoData({ fields: ['_id', 'name', 'email'], object: newShop }),
+            tokens,
+          },
+        };
       }
 
-      return {code:200, metadata: null}
+      return { code: 500, metadata: null };
     } catch (error) {
       return {
         code: 'xxx',
         message: error.message,
-        status: 'error'
-      }
+        status: 'error',
+      };
     }
-  }
+  };
 }
 
 export default AccessService;

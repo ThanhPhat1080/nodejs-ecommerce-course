@@ -1,11 +1,12 @@
 'use strict';
 
 import express from 'express';
-import accessController from '../../controllers/access.controller';
-const router = express.router();
+import accessController from '../../controllers/access.controller.js';
+
+const accessRouter = express.Router();
 
 
 // signup
-router.post('/shop/signup', accessController.signUp)
+accessRouter.post('/shop/signup', accessController.signUp)
 
-export default router;
+export default accessRouter;

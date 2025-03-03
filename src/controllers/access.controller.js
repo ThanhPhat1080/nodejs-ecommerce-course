@@ -1,6 +1,6 @@
 'use strict'
 
-import AccessService from "../services/access.service";
+import AccessService from "../services/access.service.js";
 
 class AccessController {
   signUp = async (req, res, next) => {

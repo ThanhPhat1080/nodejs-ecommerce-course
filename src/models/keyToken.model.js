@@ -1,6 +1,6 @@
 'use strict'
 
-import { Schema } from 'mongoose';
+import { Schema , model} from 'mongoose';
 
 const DOCUMENT_NAME = 'Key';
 const COLLECTION_NAME = 'Keys';
@@ -17,6 +17,10 @@ const keyTokenSchema = new Schema(
       type: String,
       require: true,
     },
+    privateKey: {
+      type: String,
+      require: true,
+    },
     refreshToken: {
       type: Array,
       default: []
@@ -29,4 +33,4 @@ const keyTokenSchema = new Schema(
 );
 
 // Export the model
-export default mongoose.model(DOCUMENT_NAME, keyTokenSchema);
+export default model(DOCUMENT_NAME, keyTokenSchema);
