@@ -3,15 +3,23 @@
 import KeyTokenModel from '../models/keyToken.model.js';
 
 class KeyTokenService {
-  static createKeyToken = async ({ userId, publicKey, privateKey }) => {
+  static createKeyToken = async ({ userId, publicKey, privateKey, refreshToken }) => {
     try {
-      const token = await KeyTokenModel.create({
-        user: userId,
-        publicKey,
-        privateKey
-      });
+      // const token = await KeyTokenModel.create({
+      //   user: userId,
+      //   publicKey,
+      //   privateKey
+      // });
+      const filter = {
+        user: userId
+      }, update = {
+        publicKey, privateKey,refreshTokensUsed: [],
+        refreshToken
+      }, options = {upsert: true,new: true}
 
-      return token ? token.publicKey : null;
+      const tokens = await KeyTokenModel.findOneAndUpdate(filter,update, options)
+
+      return tokens ? tokens.publicKey : null;
     } catch (error) {}
   };
 }

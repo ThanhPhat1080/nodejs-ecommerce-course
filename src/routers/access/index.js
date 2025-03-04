@@ -6,8 +6,7 @@ import accessController from '../../controllers/access.controller.js';
 
 const accessRouter = express.Router();
 
-
-// signup
 accessRouter.post('/shop/signup', asyncHandler(accessController.signUp))
+accessRouter.post('/shop/login', asyncHandler(accessController.login));
 
 export default accessRouter;

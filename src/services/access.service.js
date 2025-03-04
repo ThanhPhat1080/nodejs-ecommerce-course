@@ -2,10 +2,11 @@
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { createTokenPair } from '../auth/authUtils.js';
-import { BadRequestError } from '../core/error.response.js';
+import { AuthFailureError, BadRequestError } from '../core/error.response.js';
 import ShopModel from '../models/shop.model.js';
 import KeyTokenService from '../services/keyToken.service.js';
 import { getInfoData } from '../utils/index.js';
+import { findByEmail } from './shop.service.js';
 
 const roleShop = {
   SHOP: 'SHOP',
@@ -15,6 +16,44 @@ const roleShop = {
 };
 
 class AccessService {
+
+  static login = async ({ email, password, refreshToken = null }) => {
+    const foundShop = await findByEmail({ email });
+
+    if (foundShop) {
+      throw new BadRequestError("Shot not registered!")
+    }
+
+    const match = bcrypt.compare(password, foundShop.password)
+
+    if (!match) {
+      throw new AuthFailureError("Authentication Error")
+    }
+
+    // Pass email/password -> create token
+    const privateKey = crypto.getRandomValues(typedArray).toString('hex');
+    const publicKey = crypto.getRandomValues(typedArray).toString('hex');
+
+    const {_id: userId} = foundShop;
+    const tokens = createTokenPair({
+      payload: { userId, email },
+      publicKey,
+      privateKey,
+    });
+
+    await KeyTokenService.createKeyToken({
+      refreshToken: tokens.refreshToken,
+      userId,
+      publicKey,
+      privateKey
+    })
+
+    return {
+      shop: getInfoData({ fields: ['_id', 'name', 'email'], object: foundShop }),
+      tokens,
+    };
+
+  }
   static signUp = async ({ name, email, password }) => {
     try {
       const shopOwner = await ShopModel.findOne({ email }).lean();
@@ -54,8 +93,9 @@ class AccessService {
       const typedArray = new Uint32Array(10);
       const privateKey = crypto.getRandomValues(typedArray).toString('hex');
       const publicKey = crypto.getRandomValues(typedArray).toString('hex');
-      console.log('dddd', { privateKey, publicKey }); //save collection key store
+      console.log('dddd', { privateKey, publicKey });
 
+      // Save collection key store
       const keyStore = await KeyTokenService.createKeyToken({
         userId: newShop._id,
         publicKey,

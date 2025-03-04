@@ -1,9 +1,15 @@
 'use strict'
 
-import { Created } from "../core/success.response.js";
+import { Created, SuccessResponse } from "../core/success.response.js";
 import AccessService from "../services/access.service.js";
 
 class AccessController {
+  login = async (req, res) => {
+    new SuccessResponse({
+      metadata: await AccessService.login(req.body)
+    }).send(res)
+  }
+
   signUp = async (req, res) => {
     return new Created({
       message: "Registered success!",
