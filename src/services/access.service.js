@@ -31,6 +31,7 @@ class AccessService {
     }
 
     // Pass email/password -> create token
+    const typedArray = new Uint32Array(10);
     const privateKey = crypto.getRandomValues(typedArray).toString('hex');
     const publicKey = crypto.getRandomValues(typedArray).toString('hex');
 
@@ -93,7 +94,6 @@ class AccessService {
       const typedArray = new Uint32Array(10);
       const privateKey = crypto.getRandomValues(typedArray).toString('hex');
       const publicKey = crypto.getRandomValues(typedArray).toString('hex');
-      console.log('dddd', { privateKey, publicKey });
 
       // Save collection key store
       const keyStore = await KeyTokenService.createKeyToken({
