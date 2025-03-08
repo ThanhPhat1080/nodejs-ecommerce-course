@@ -11,7 +11,6 @@ router.use(permission('0000'));
 
 // Check Permission
 
-
-router.use('/v1/api', accessRouter)
+router.use('/v1/api', accessRouter);
 
 export default router;

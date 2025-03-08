@@ -16,18 +16,17 @@ const roleShop = {
 };
 
 class AccessService {
-
   static login = async ({ email, password, refreshToken = null }) => {
     const foundShop = await findByEmail({ email });
 
-    if (foundShop) {
-      throw new BadRequestError("Shot not registered!")
+    if (!foundShop) {
+      throw new BadRequestError('Shot not registered!');
     }
 
-    const match = bcrypt.compare(password, foundShop.password)
+    const match = bcrypt.compare(password, foundShop.password);
 
     if (!match) {
-      throw new AuthFailureError("Authentication Error")
+      throw new AuthFailureError('Authentication Error');
     }
 
     // Pass email/password -> create token
@@ -35,7 +34,7 @@ class AccessService {
     const privateKey = crypto.getRandomValues(typedArray).toString('hex');
     const publicKey = crypto.getRandomValues(typedArray).toString('hex');
 
-    const {_id: userId} = foundShop;
+    const { _id: userId } = foundShop;
     const tokens = createTokenPair({
       payload: { userId, email },
       publicKey,
@@ -46,20 +45,20 @@ class AccessService {
       refreshToken: tokens.refreshToken,
       userId,
       publicKey,
-      privateKey
-    })
+      privateKey,
+    });
 
     return {
       shop: getInfoData({ fields: ['_id', 'name', 'email'], object: foundShop }),
       tokens,
     };
+  };
 
-  }
   static signUp = async ({ name, email, password }) => {
     try {
       const shopOwner = await ShopModel.findOne({ email }).lean();
       if (shopOwner) {
-        throw new BadRequestError('Error: Shop already registered!')
+        throw new BadRequestError('Error: Shop already registered!');
       }
 
       const passwordHash = await bcrypt.hash(password, 10);
@@ -71,8 +70,9 @@ class AccessService {
       });
 
       if (!newShop) {
-        throw new BadRequestError('Error: Cannot register!')
+        throw new BadRequestError('Error: Cannot register!');
       }
+
       /**
        * Create Key in Advance way
        */
@@ -103,7 +103,7 @@ class AccessService {
       });
 
       if (!keyStore) {
-        throw new BadRequestError('Error: Cannot register!')
+        throw new BadRequestError('Error: Cannot register!');
       }
 
       const tokens = createTokenPair({
@@ -119,7 +119,6 @@ class AccessService {
           tokens,
         },
       };
-
     } catch (error) {
       return {
         code: 'xxx',
@@ -127,6 +126,12 @@ class AccessService {
         status: 'error',
       };
     }
+  };
+
+  static logout = async (keyStore) => {
+    const deleteKey = await KeyTokenService.removeKeyById(keyStore._id);
+
+    return deleteKey;
   };
 }
 

@@ -2,9 +2,10 @@
 
 import ApiKeyService from '../services/apiKey.service.js';
 
-const HEADER = {
+export const HEADER = {
   API_KEY: 'x-api-key',
   AUTHORIZATION: 'authorization',
+  CLIENT_ID: 'x-client-id'
 };
 
 const apiKey = async (req, res, next) => {
@@ -45,11 +46,7 @@ const permission = (permission) => {
   }
 };
 
-const asyncHandler = fn => {
-  return (req, res, next) => {
-    fn(req, res, next).catch(next)
-  }
-}
 
-export { apiKey, asyncHandler, permission };
+
+export { apiKey, permission };
 

@@ -1,6 +1,10 @@
 'use strict';
 
 import JWT from 'jsonwebtoken';
+import { AuthFailureError, NotFoundError } from '../core/error.response';
+import { asyncHandler } from '../helpers/common';
+import KeyTokenService from '../services/keyToken.service';
+import { HEADER } from './checkAuth';
 
 const createTokenPair = ({ payload, publicKey, privateKey }) => {
   try {
@@ -25,4 +29,35 @@ const createTokenPair = ({ payload, publicKey, privateKey }) => {
   } catch (error) {}
 };
 
-export { createTokenPair };
+const authentication = asyncHandler(async (res, req, next) => {
+  /**
+   * 1.missing user is? User is on header
+   * 2.get key access token by user
+   * 3. verifyToken
+   * 4 check user db
+   * 5 check keyStore with user id
+   *
+   */
+
+  const userId = res.headers[HEADER.CLIENT_ID];
+  if (!userId) throw new AuthFailureError('Invalid Request');
+
+  const keyStore = KeyTokenService.findByUserId(userId);
+  if (!keyStore) throw new NotFoundError('Not found keys');
+
+  const accessToken = req.headers(HEADER.AUTHORIZATION);
+  if (!accessToken) throw new AuthFailureError('Invalid Request');
+
+  try {
+    const decodeUser = JWT.verify(accessToken, keyStore.publicKey);
+    if (userId !== decodeUser.userId) throw new AuthFailureError('Invalid user');
+
+    req.keyStore = keyStore;
+
+    return next();
+  } catch (error) {
+    throw error;
+  }
+});
+
+export { authentication, createTokenPair };
