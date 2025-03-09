@@ -5,7 +5,7 @@ import AccessService from '../services/access.service.js';
 
 class AccessController {
   login = async (req, res) => {
-    new SuccessResponse({
+    return new SuccessResponse({
       metadata: await AccessService.login(req.body),
     }).send(res);
   };
@@ -20,9 +20,16 @@ class AccessController {
   logout = async (req, res) => {
     const { keyStore } = req;
 
-    new SuccessResponse({
+    return new SuccessResponse({
       message: 'Logout success!',
       metadata: await AccessService.logout(keyStore),
+    }).send(res);
+  };
+
+  handleRefreshToken = async (req, res) => {
+    return new SuccessResponse({
+      message: 'Get token success!',
+      metadata: await AccessService.handlerRefreshToken(req.body.refreshToken),
     }).send(res);
   };
 }

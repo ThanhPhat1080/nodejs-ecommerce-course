@@ -1,52 +1,45 @@
 'use strict';
 
+import { AuthFailureError, ForbiddenError } from '../core/error.response.js';
+import { asyncHandler } from '../helpers/common.js';
 import ApiKeyService from '../services/apiKey.service.js';
 
 export const HEADER = {
   API_KEY: 'x-api-key',
   AUTHORIZATION: 'authorization',
-  CLIENT_ID: 'x-client-id'
+  CLIENT_ID: 'x-client-id',
 };
 
-const apiKey = async (req, res, next) => {
-  try {
-    const key = req.headers[HEADER.API_KEY]?.toString();
+const apiKey = asyncHandler(async (req, res, next) => {
+  const key = req.headers[HEADER.API_KEY]?.toString();
 
-    if (!key) {
-      return res.status(403).json({
-        message: 'Forbidden Error',
-      });
-    }
+  if (!key) {
+    return new ForbiddenError();
+  }
 
-    const objectKey = await ApiKeyService.findById(key);
-    if (!objectKey) {
-      return res.status(403).json({
-        message: 'Forbidden Error',
-      });
-    }
+  const objectKey = await ApiKeyService.findById(key);
+  if (!objectKey) {
+    return new ForbiddenError();
+  }
 
-    req.objectKey = objectKey;
+  req.objectKey = objectKey;
 
-    return next();
-  } catch (error) { }
-};
+  return next();
+});
 
 const permission = (permission) => {
   return (req, res, next) => {
     if (!req.objectKey.permissions) {
-      return res.status(403).json({ message: "Permission denied!" })
+      return new AuthFailureError();
     }
 
-    const validPermission = req.objectKey.permissions.includes(permission)
+    const validPermission = req.objectKey.permissions.includes(permission);
     if (!validPermission) {
-      return res.status(403).json({ message: "Permission denied!" })
-
+      return new AuthFailureError();
     }
-    return next()
-  }
+
+    return next();
+  };
 };
 
-
-
 export { apiKey, permission };
-

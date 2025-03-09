@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 import { Schema, model } from 'mongoose';
 
@@ -11,7 +11,7 @@ const keyTokenSchema = new Schema(
     user: {
       type: Schema.ObjectId,
       require: true,
-      ref: 'Shop'
+      ref: 'Shop',
     },
     publicKey: {
       type: String,
@@ -23,12 +23,12 @@ const keyTokenSchema = new Schema(
     },
     refreshTokensUsed: {
       type: Array,
-      default: []
+      default: [],
     },
     refreshToken: {
       type: String,
-      require: true
-    }
+      require: true,
+    },
   },
   {
     timestamps: true,

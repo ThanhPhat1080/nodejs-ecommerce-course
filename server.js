@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 import app from './src/app.js';
 import configEnv from './src/configs/config.env.js';

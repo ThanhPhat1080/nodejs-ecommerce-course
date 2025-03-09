@@ -1,12 +1,13 @@
 'use strict';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
+import JWT from 'jsonwebtoken';
 import { createTokenPair } from '../auth/authUtils.js';
-import { AuthFailureError, BadRequestError } from '../core/error.response.js';
+import { AuthFailureError, BadRequestError, ForbiddenError } from '../core/error.response.js';
 import ShopModel from '../models/shop.model.js';
 import KeyTokenService from '../services/keyToken.service.js';
 import { getInfoData } from '../utils/index.js';
-import { findByEmail } from './shop.service.js';
+import ShopService from './shop.service.js';
 
 const roleShop = {
   SHOP: 'SHOP',
@@ -17,7 +18,7 @@ const roleShop = {
 
 class AccessService {
   static login = async ({ email, password, refreshToken = null }) => {
-    const foundShop = await findByEmail({ email });
+    const foundShop = await ShopService.findByEmail({ email });
 
     if (!foundShop) {
       throw new BadRequestError('Shot not registered!');
@@ -132,6 +133,58 @@ class AccessService {
     const deleteKey = await KeyTokenService.removeKeyById(keyStore._id);
 
     return deleteKey;
+  };
+
+  /**
+   * Check token used
+   * @param {*} refreshToken
+   */
+  static handlerRefreshToken = async (refreshToken) => {
+    const foundToken = await KeyTokenService.findByRefreshTokenUsed(refreshToken);
+    if (foundToken) {
+      const { userId } = JWT.verify(refreshToken, foundToken.privateKey);
+
+      // Xoa
+
+      await KeyTokenService.deleteKeyById(userId);
+      throw new ForbiddenError('Something went wrong !! Please re-login');
+    }
+
+    const holderToken = await KeyTokenService.findByRefreshToken(refreshToken);
+    if (!holderToken) throw new AuthFailureError('Shop not register');
+
+    // verify token
+    const { email, userId } = JWT.verify(refreshToken, holderToken.privateKey);
+    const foundShop = await ShopService.findByEmail({ email });
+
+    if (!foundShop) {
+      throw new BadRequestError('Shot not registered!');
+    }
+
+    // Create new token
+    const tokens = createTokenPair({
+      payload: { userId, email },
+      publicKey: holderToken.publicKey,
+      privateKey: holderToken.privateKey,
+    });
+
+    // update token
+    await holderToken.updateOne({
+      $set: {
+        refreshToken: tokens.refreshToken,
+      },
+      $addToSet: {
+        refreshTokensUsed: refreshToken,
+      },
+    });
+
+    return {
+      user: {
+        userId,
+        email,
+      },
+      tokens,
+    };
   };
 }
 

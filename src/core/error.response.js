@@ -1,19 +1,17 @@
-'use strict'
+'use strict';
 
-import {
-  HTTP_REASON_PHRASES,
-  HTTP_STATUS_CODES
-} from '../utils/httpStatusCode.js';
+import { HTTP_REASON_PHRASES, HTTP_STATUS_CODES } from '../utils/httpStatusCode.js';
+
 class ErrorResponse extends Error {
   constructor(message, status) {
-    super(message)
+    super(message);
     this.status = status;
   }
 }
 
 class ConflictRequestError extends ErrorResponse {
   constructor(message = HTTP_REASON_PHRASES.CONFLICT, statusCode = HTTP_STATUS_CODES.CONFLICT) {
-    super(message, statusCode)
+    super(message, statusCode);
   }
 }
 
@@ -30,9 +28,15 @@ class AuthFailureError extends ErrorResponse {
 }
 
 class NotFoundError extends ErrorResponse {
-  constructor(message =HTTP_REASON_PHRASES.NOT_FOUND, statusCode = HTTP_STATUS_CODES.NOT_FOUND) {
-    super(message, statusCode)
+  constructor(message = HTTP_REASON_PHRASES.NOT_FOUND, statusCode = HTTP_STATUS_CODES.NOT_FOUND) {
+    super(message, statusCode);
   }
 }
-export { AuthFailureError, BadRequestError, ConflictRequestError, ErrorResponse, NotFoundError };
 
+class ForbiddenError extends ErrorResponse {
+  constructor(message = HTTP_REASON_PHRASES.FORBIDDEN, statusCode = HTTP_STATUS_CODES.FORBIDDEN) {
+    super(message, statusCode);
+  }
+}
+
+export { AuthFailureError, BadRequestError, ConflictRequestError, ErrorResponse, ForbiddenError, NotFoundError };

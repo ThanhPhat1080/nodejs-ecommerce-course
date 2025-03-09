@@ -16,7 +16,7 @@ const apiKeySchema = new Schema(
     status: {
       type: Boolean,
       require: false,
-      default: true
+      default: true,
     },
     permissions: {
       type: [String],

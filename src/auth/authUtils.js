@@ -1,10 +1,10 @@
 'use strict';
 
 import JWT from 'jsonwebtoken';
-import { AuthFailureError, NotFoundError } from '../core/error.response';
-import { asyncHandler } from '../helpers/common';
-import KeyTokenService from '../services/keyToken.service';
-import { HEADER } from './checkAuth';
+import { AuthFailureError, NotFoundError } from '../core/error.response.js';
+import { asyncHandler } from '../helpers/common.js';
+import KeyTokenService from '../services/keyToken.service.js';
+import { HEADER } from './checkAuth.js';
 
 const createTokenPair = ({ payload, publicKey, privateKey }) => {
   try {
@@ -29,7 +29,7 @@ const createTokenPair = ({ payload, publicKey, privateKey }) => {
   } catch (error) {}
 };
 
-const authentication = asyncHandler(async (res, req, next) => {
+const authentication = asyncHandler(async (req, res, next) => {
   /**
    * 1.missing user is? User is on header
    * 2.get key access token by user
@@ -39,13 +39,14 @@ const authentication = asyncHandler(async (res, req, next) => {
    *
    */
 
-  const userId = res.headers[HEADER.CLIENT_ID];
+  const userId = req.headers[HEADER.CLIENT_ID];
   if (!userId) throw new AuthFailureError('Invalid Request');
 
-  const keyStore = KeyTokenService.findByUserId(userId);
+  const keyStore = await KeyTokenService.findByUserId(userId);
   if (!keyStore) throw new NotFoundError('Not found keys');
 
-  const accessToken = req.headers(HEADER.AUTHORIZATION);
+  const accessToken = req.headers[HEADER.AUTHORIZATION].split('Bearer ')[1];
+
   if (!accessToken) throw new AuthFailureError('Invalid Request');
 
   try {

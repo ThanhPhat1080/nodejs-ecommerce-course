@@ -1,16 +1,11 @@
 'use strict';
 
 import { Types } from 'mongoose';
-import { default as keyTokenModel, default as KeyTokenModel } from '../models/keyToken.model.js';
+import { default as KeyTokenModel } from '../models/keyToken.model.js';
 
 class KeyTokenService {
   static createKeyToken = async ({ userId, publicKey, privateKey, refreshToken }) => {
     try {
-      // const token = await KeyTokenModel.create({
-      //   user: userId,
-      //   publicKey,
-      //   privateKey
-      // });
       const filter = {
           user: userId,
         },
@@ -22,18 +17,30 @@ class KeyTokenService {
         },
         options = { upsert: true, new: true };
 
-      const tokens = await KeyTokenModel.findOneAndUpdate(filter, update, options);
+      const tokens = await KeyTokenModel.findOneAndUpdate(filter, update, options).lean();
 
       return tokens ? tokens.publicKey : null;
     } catch (error) {}
   };
 
   static findByUserId = async (userId) => {
-    return await keyTokenModel.findOne({ user: Types.ObjectId(userId) }).lean();
+    return await KeyTokenModel.findOne({ user: new Types.ObjectId(userId.toString()) }).lean();
   };
 
   static removeKeyById = async (id) => {
-    return await keyTokenModel.remove(id);
+    return await KeyTokenModel.remove(id);
+  };
+
+  static findByRefreshTokenUsed = async (refreshToken) => {
+    return await KeyTokenModel.findOne({ refreshTokensUsed: refreshToken }).lean();
+  };
+
+  static findByRefreshToken = async (refreshToken) => {
+    return await KeyTokenModel.findOne({ refreshToken });
+  };
+
+  static deleteKeyById = async (userId) => {
+    return await KeyTokenModel.findOneAndDelete({ user: userId }).lean();
   };
 }
 
