@@ -1,5 +1,5 @@
 'use strict';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import JWT from 'jsonwebtoken';
 import { createTokenPair } from '../auth/authUtils.js';

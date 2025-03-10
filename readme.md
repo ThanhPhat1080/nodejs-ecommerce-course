@@ -16,7 +16,7 @@ This is a 🌐 RESTful eCommerce API built with **🟢 Node.js**, **🚀 Express
 
 - **🟢 Backend**: Node.js, Express.js
 - **🗄️ Database**: MongoDB, Mongoose
-- **🔐 Authentication**: JWT (JSON Web Tokens), bcrypt.js
+- **🔐 Authentication**: JWT (JSON Web Tokens), bcryptjs
 - **🛡️ Middleware**: Express middleware for validation, error handling, and security
 
 ## ⚙️ Installation 🔧
