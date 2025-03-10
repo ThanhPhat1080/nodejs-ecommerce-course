@@ -16,7 +16,7 @@ class ConflictRequestError extends ErrorResponse {
 }
 
 class BadRequestError extends ErrorResponse {
-  constructor(message = HTTP_REASON_PHRASES.FORBIDDEN, statusCode = HTTP_STATUS_CODES.FORBIDDEN) {
+  constructor(message = HTTP_REASON_PHRASES.BAD_REQUEST, statusCode = HTTP_STATUS_CODES.BAD_REQUEST) {
     super(message, statusCode);
   }
 }
@@ -39,4 +39,21 @@ class ForbiddenError extends ErrorResponse {
   }
 }
 
-export { AuthFailureError, BadRequestError, ConflictRequestError, ErrorResponse, ForbiddenError, NotFoundError };
+class InternalError extends ErrorResponse {
+  constructor(
+    message = HTTP_REASON_PHRASES.INTERNAL_SERVER_ERROR,
+    statusCode = HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR,
+  ) {
+    super(message, statusCode);
+  }
+}
+
+export {
+  AuthFailureError,
+  BadRequestError,
+  ConflictRequestError,
+  ErrorResponse,
+  ForbiddenError,
+  InternalError,
+  NotFoundError,
+};

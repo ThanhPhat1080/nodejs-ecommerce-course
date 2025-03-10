@@ -7,26 +7,16 @@ import KeyTokenService from '../services/keyToken.service.js';
 import { HEADER } from './checkAuth.js';
 
 const createTokenPair = ({ payload, publicKey, privateKey }) => {
-  try {
-    // Access token
-    const accessToken = JWT.sign(payload, publicKey, {
-      expiresIn: '2 days',
-    });
+  // Access token
+  const accessToken = JWT.sign(payload, publicKey, {
+    expiresIn: '2 days',
+  });
 
-    const refreshToken = JWT.sign(payload, privateKey, {
-      expiresIn: '7 days',
-    });
+  const refreshToken = JWT.sign(payload, privateKey, {
+    expiresIn: '7 days',
+  });
 
-    JWT.verify(accessToken, publicKey, (err, decoded) => {
-      if (err) {
-        console.error('err:', err);
-      } else {
-        console.log('===>', decoded);
-      }
-    });
-
-    return { accessToken, refreshToken };
-  } catch (error) {}
+  return { accessToken, refreshToken };
 };
 
 const authentication = asyncHandler(async (req, res, next) => {
@@ -49,16 +39,12 @@ const authentication = asyncHandler(async (req, res, next) => {
 
   if (!accessToken) throw new AuthFailureError('Invalid Request');
 
-  try {
-    const decodeUser = JWT.verify(accessToken, keyStore.publicKey);
-    if (userId !== decodeUser.userId) throw new AuthFailureError('Invalid user');
+  const decodeUser = JWT.verify(accessToken, keyStore.publicKey);
+  if (userId !== decodeUser.userId) throw new AuthFailureError('Invalid user');
 
-    req.keyStore = keyStore;
+  req.keyStore = keyStore;
 
-    return next();
-  } catch (error) {
-    throw error;
-  }
+  return next();
 });
 
 export { authentication, createTokenPair };

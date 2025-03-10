@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import JWT from 'jsonwebtoken';
 import { createTokenPair } from '../auth/authUtils.js';
-import { AuthFailureError, BadRequestError, ForbiddenError } from '../core/error.response.js';
+import { AuthFailureError, BadRequestError, ForbiddenError, InternalError } from '../core/error.response.js';
 import ShopModel from '../models/shop.model.js';
 import KeyTokenService from '../services/keyToken.service.js';
 import { getInfoData } from '../utils/index.js';
@@ -18,41 +18,45 @@ const roleShop = {
 
 class AccessService {
   static login = async ({ email, password, refreshToken = null }) => {
-    const foundShop = await ShopService.findByEmail({ email });
+    try {
+      const foundShop = await ShopService.findByEmail({ email });
 
-    if (!foundShop) {
-      throw new BadRequestError('Shot not registered!');
+      if (!foundShop) {
+        throw new BadRequestError('Shot not registered!');
+      }
+
+      const match = bcrypt.compare(password, foundShop.password);
+
+      if (!match) {
+        throw new AuthFailureError('Authentication Error');
+      }
+
+      // Pass email/password -> create token
+      const typedArray = new Uint32Array(10);
+      const privateKey = crypto.getRandomValues(typedArray).toString('hex');
+      const publicKey = crypto.getRandomValues(typedArray).toString('hex');
+
+      const { _id: userId } = foundShop;
+      const tokens = createTokenPair({
+        payload: { userId, email },
+        publicKey,
+        privateKey,
+      });
+
+      await KeyTokenService.createKeyToken({
+        refreshToken: tokens.refreshToken,
+        userId,
+        publicKey,
+        privateKey,
+      });
+
+      return {
+        shop: getInfoData({ fields: ['_id', 'name', 'email'], object: foundShop }),
+        tokens,
+      };
+    } catch {
+      return new InternalError();
     }
-
-    const match = bcrypt.compare(password, foundShop.password);
-
-    if (!match) {
-      throw new AuthFailureError('Authentication Error');
-    }
-
-    // Pass email/password -> create token
-    const typedArray = new Uint32Array(10);
-    const privateKey = crypto.getRandomValues(typedArray).toString('hex');
-    const publicKey = crypto.getRandomValues(typedArray).toString('hex');
-
-    const { _id: userId } = foundShop;
-    const tokens = createTokenPair({
-      payload: { userId, email },
-      publicKey,
-      privateKey,
-    });
-
-    await KeyTokenService.createKeyToken({
-      refreshToken: tokens.refreshToken,
-      userId,
-      publicKey,
-      privateKey,
-    });
-
-    return {
-      shop: getInfoData({ fields: ['_id', 'name', 'email'], object: foundShop }),
-      tokens,
-    };
   };
 
   static signUp = async ({ name, email, password }) => {
