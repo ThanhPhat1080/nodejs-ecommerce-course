@@ -1,8 +1,8 @@
-import { FlatCompat } from "@eslint/eslintrc";
-import js from "@eslint/js";
-import globals from "globals";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { FlatCompat } from '@eslint/eslintrc';
+import js from '@eslint/js';
+import globals from 'globals';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,27 +14,27 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: ["**/node_modules", "**/dist", "**/build", "**/coverage"],
+    ignores: ['**/node_modules', '**/dist', '**/build', '**/coverage'],
   },
-  ...compat.extends("eslint:recommended", "plugin:prettier/recommended"),
+  ...compat.extends('eslint:recommended', 'plugin:prettier/recommended'),
   {
     languageOptions: {
       globals: {
         ...globals.node,
       },
 
-      ecmaVersion: "latest",
-      sourceType: "module",
+      ecmaVersion: 'latest',
+      sourceType: 'module',
     },
 
     rules: {
-      "prettier/prettier": ["error", { endOfLine: "auto" }],
-      "no-unused-vars": "warn",
-      "no-console": "warn",
-      "func-names": "off",
-      "no-process-exit": "off",
-      "object-shorthand": "off",
-      "class-methods-use-this": "off",
+      'prettier/prettier': ['error', { endOfLine: 'auto', singleQuote: true, parser: 'flow' }],
+      'no-unused-vars': 'warn',
+      'no-console': 'warn',
+      'func-names': 'off',
+      'no-process-exit': 'off',
+      'object-shorthand': 'off',
+      'class-methods-use-this': 'off',
     },
   },
 ];
