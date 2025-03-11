@@ -14,12 +14,12 @@ const apiKey = asyncHandler(async (req, res, next) => {
   const key = req.headers[HEADER.API_KEY]?.toString();
 
   if (!key) {
-    return new ForbiddenError();
+    throw new ForbiddenError();
   }
 
   const objectKey = await ApiKeyService.findById(key);
   if (!objectKey) {
-    return new ForbiddenError();
+    throw new ForbiddenError();
   }
 
   req.objectKey = objectKey;

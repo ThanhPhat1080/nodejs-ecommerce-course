@@ -1,11 +1,11 @@
 'use strict';
 
-import mongoose from 'mongoose';
+import { Schema, model } from 'mongoose';
 
 const DOCUMENT_NAME = 'Shop';
 const COLLECTION_NAME = 'Shops';
 
-const shopSchema = new mongoose.Schema(
+const shopSchema = new Schema(
   {
     name: {
       type: String,
@@ -43,4 +43,4 @@ const shopSchema = new mongoose.Schema(
   },
 );
 
-export default mongoose.model(DOCUMENT_NAME, shopSchema);
+export default model(DOCUMENT_NAME, shopSchema);
