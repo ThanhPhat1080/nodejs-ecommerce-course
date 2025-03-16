@@ -1,6 +1,7 @@
 import { BadRequestError } from '../core/error.response.js';
 import { clothingModel, electronicsModel, productModel } from '../models/product.model.js';
 import * as ProductRepo from '../models/repositories/product.repo.js';
+
 class Product {
   constructor({
     product_name,
@@ -71,7 +72,7 @@ class Clothing extends Product {
   }
 }
 
-class ProductFactory {
+class ProductServices {
   static registry = new Map();
 
   static async createProduct(type, payload) {
@@ -97,7 +98,7 @@ class ProductFactory {
     this.registry.set(type, ProductClass);
   }
 
-  /////////////////////// Query the product ////////////////////////////////////////
+  /////////////////////// QUERY ////////////////////////////////////////
   static async findAllDraftProductsForShop({ product_shop, limit = 50, skip = 0 }) {
     return await ProductRepo.findAllDraftProductsForShop({ product_shop, limit, skip });
   }
@@ -106,14 +107,22 @@ class ProductFactory {
     return await ProductRepo.findAllPublishProductsForShop({ product_shop, limit, skip });
   }
 
+  static async searchProductsByUser(keyword) {
+    return await ProductRepo.searchProducts(keyword, { isPublished: true, isDraft: false });
+  }
+
   ///////////////////// PUT //////////////////////////////////////////
-  static async publishProduct({ product_id, product_shop }) {
+  static async publishProductByShop({ product_id, product_shop }) {
     return await ProductRepo.publishProductByShop({ product_id, product_shop });
+  }
+
+  static async unpublishProductByShop({ product_id, product_shop }) {
+    return await ProductRepo.unpublishProductByShop({ product_id, product_shop });
   }
 }
 
 // Register the new product type
-ProductFactory.registerProductType('Electronics', Electronics);
-ProductFactory.registerProductType('Clothing', Clothing);
+ProductServices.registerProductType('Electronics', Electronics);
+ProductServices.registerProductType('Clothing', Clothing);
 
-export default ProductFactory;
+export default ProductServices;

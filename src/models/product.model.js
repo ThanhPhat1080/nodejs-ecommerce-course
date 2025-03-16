@@ -44,7 +44,7 @@ const productSchema = new Schema(
     },
     product_slug: {
       type: String,
-      required: true,
+      unique: true,
     },
 
     // More
@@ -78,6 +78,10 @@ const productSchema = new Schema(
     collection: COLLECTION_NAME,
   },
 );
+
+// Create Index
+productSchema.index({ product_name: 'text', product_description: 'text' });
+
 const bookSchema = new Schema(
   {
     author: {
@@ -141,8 +145,9 @@ const clothingSchema = new Schema(
 
 // Product Document middleware
 productSchema.pre('save', function (next) {
+  console.log('thissss', this.product_name);
   this.product_slug = slugify(this.product_name, { lower: true });
-  next();
+  return next();
 });
 
 export const productModel = model(DOCUMENT_NAME, productSchema);

@@ -38,3 +38,37 @@ export const publishProductByShop = async ({ product_id, product_shop }) => {
   const { modifiedCount } = await foundProduct.updateOne(foundProduct);
   return modifiedCount;
 };
+
+export const unpublishProductByShop = async ({ product_id, product_shop }) => {
+  const foundProduct = await productModel.findOne({
+    _id: new Types.ObjectId(product_id.toString()),
+    product_shop: new Types.ObjectId(product_shop.toString()),
+  });
+
+  if (!foundProduct) {
+    return null;
+  }
+
+  foundProduct.isPublished = true;
+  foundProduct.isDraft = false;
+
+  const { modifiedCount } = await foundProduct.updateOne(foundProduct);
+  return modifiedCount;
+};
+
+export const searchProducts = async (keyword, { isPublished = true, isDraft = false }) => {
+  const regexKeyword = new RegExp(keyword, 'i');
+
+  return await productModel
+    .find(
+      {
+        isPublished,
+        isDraft,
+        $text: { $search: regexKeyword },
+      },
+      { score: { $meta: 'textScore' } },
+    )
+    .sort({ score: { $meta: 'textScore' } })
+    .lean()
+    .exec();
+};
