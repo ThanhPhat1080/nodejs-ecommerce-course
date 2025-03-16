@@ -48,4 +48,45 @@ const authentication = asyncHandler(async (req, res, next) => {
   return next();
 });
 
-export { authentication, createTokenPair };
+const authenticationV2 = asyncHandler(async (req, res, next) => {
+  /**
+   * 1.missing user is? User is on header
+   * 2.get key access token by user
+   * 3. verifyToken
+   * 4 check user db
+   * 5 check keyStore with user id
+   *
+   */
+
+  const userId = req.headers[HEADER.CLIENT_ID];
+  if (!userId) throw new AuthFailureError('Invalid request!');
+
+  const keyStore = await KeyTokenService.findByUserId(userId);
+  if (!keyStore) throw new AuthFailureError('Invalid key!');
+
+  const refreshToken = req.headers[HEADER.REFRESH_TOKEN];
+  if (refreshToken) {
+    const decodeUser = JWT.verify(refreshToken, keyStore.privateKey);
+    if (userId !== decodeUser.userId) throw new AuthFailureError('Invalid user!');
+
+    req.keyStore = keyStore;
+    req.user = decodeUser;
+    req.refreshToken = refreshToken;
+
+    return next();
+  }
+
+  const accessToken = req.headers[HEADER.AUTHORIZATION].split('Bearer ')[1];
+
+  if (!accessToken) throw new AuthFailureError('Invalid Request');
+
+  const decodeUser = JWT.verify(accessToken, keyStore.publicKey);
+  if (userId !== decodeUser.userId) throw new AuthFailureError('Invalid user');
+
+  req.keyStore = keyStore;
+  req.user = decodeUser;
+
+  return next();
+});
+
+export { authentication, authenticationV2, createTokenPair };

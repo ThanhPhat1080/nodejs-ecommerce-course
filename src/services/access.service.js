@@ -190,6 +190,52 @@ class AccessService {
       tokens,
     };
   };
+
+  /**
+   * Check token used
+   * @param {*} refreshToken
+   */
+  static handlerRefreshTokenV2 = async ({ refreshToken, user, keyStore }) => {
+    const refreshTokenUsed = await KeyTokenService.findByUserId(user.userId).refreshTokensUsed;
+
+    if (refreshTokenUsed.includes(refreshToken)) {
+      await KeyTokenService.deleteKeyById(user.userId);
+
+      throw new ForbiddenError('Something went wrong. Please re-login!');
+    }
+
+    if (keyStore.refreshToken !== refreshToken) {
+      throw new ForbiddenError('Refresh token invalid!');
+    }
+
+    // Verify token
+    const foundShop = await ShopService.findByEmail({ email: user.email });
+    if (!foundShop) {
+      throw new BadRequestError('Shot not registered!');
+    }
+
+    // Create new token
+    const tokens = createTokenPair({
+      payload: { userId: user.userId, email: user.email },
+      publicKey: keyStore.publicKey,
+      privateKey: keyStore.privateKey,
+    });
+
+    // update token
+    await keyStore.updateOne({
+      $set: {
+        refreshToken: tokens.refreshToken,
+      },
+      $addToSet: {
+        refreshTokensUsed: refreshToken,
+      },
+    });
+
+    return {
+      user,
+      tokens,
+    };
+  };
 }
 
 export default AccessService;

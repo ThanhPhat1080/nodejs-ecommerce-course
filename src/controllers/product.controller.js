@@ -1,6 +1,6 @@
 'use strict';
 
-import { Created } from '../core/success.response.js';
+import { Created, SuccessResponse } from '../core/success.response.js';
 import ProductServices from '../services/product.service.js';
 
 class ProductController {
@@ -28,6 +28,26 @@ class ProductController {
   //     return res.status(error.status).json({ message: error.message });
   //   }
   // }
+
+  /////////////////////////////////////// QUERY //////////////////////////////////////////
+  /**
+   * @description Get all draft products for shop
+   * @param {*} req
+   * @param {*} res
+   */
+  static async getAllDraftProductsForShop(req, res) {
+    new SuccessResponse({
+      message: 'Get all draft products for shop success',
+      metadata: await ProductServices.findAllDraftProductsForShop({ product_shop: req.user.userId }),
+    }).send(res);
+  }
+
+  static async getAllPublishedProductsForShop(req, res) {
+    new SuccessResponse({
+      message: 'Get all Published products for shop success',
+      metadata: await ProductServices.findAllPublishProductsForShop({ product_shop: req.user.userId }),
+    }).send(res);
+  }
 }
 
 export default ProductController;

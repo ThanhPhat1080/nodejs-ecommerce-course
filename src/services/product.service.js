@@ -1,6 +1,6 @@
 import { BadRequestError } from '../core/error.response.js';
 import { clothingModel, electronicsModel, productModel } from '../models/product.model.js';
-
+import * as ProductRepo from '../models/repositories/product.repo.js';
 class Product {
   constructor({
     product_name,
@@ -24,6 +24,10 @@ class Product {
 
   async createProduct(productId) {
     return await productModel.create({ ...this, _id: productId });
+  }
+
+  async updateProduct(productId) {
+    return await productModel.updateOne({ _id: productId }, { ...this });
   }
 }
 
@@ -68,16 +72,48 @@ class Clothing extends Product {
 }
 
 class ProductFactory {
+  static registry = new Map();
+
   static async createProduct(type, payload) {
-    switch (type) {
-      case 'Electronics':
-        return await new Electronics(payload).createProduct();
-      case 'Clothing':
-        return await new Clothing(payload).createProduct();
-      default:
-        throw new BadRequestError('Invalid product type: ' + type);
+    const ProductClass = this.registry.get(type);
+    if (!ProductClass) {
+      throw new BadRequestError('Invalid product type: ' + type);
     }
+
+    return await new ProductClass(payload).createProduct();
+  }
+
+  static registerProductType(type, ProductClass) {
+    if (this.registry.has(type)) {
+      throw new BadRequestError('Product type already exists: ' + type);
+    }
+    this.registry.set(type, ProductClass);
+  }
+
+  static updateProductType(type, ProductClass) {
+    if (!this.registry.has(type)) {
+      throw new BadRequestError('Product type does not exist: ' + type);
+    }
+    this.registry.set(type, ProductClass);
+  }
+
+  /////////////////////// Query the product ////////////////////////////////////////
+  static async findAllDraftProductsForShop({ product_shop, limit = 50, skip = 0 }) {
+    return await ProductRepo.findAllDraftProductsForShop({ product_shop, limit, skip });
+  }
+
+  static async findAllPublishProductsForShop({ product_shop, limit = 50, skip = 0 }) {
+    return await ProductRepo.findAllPublishProductsForShop({ product_shop, limit, skip });
+  }
+
+  ///////////////////// PUT //////////////////////////////////////////
+  static async publishProduct({ product_id, product_shop }) {
+    return await ProductRepo.publishProductByShop({ product_id, product_shop });
   }
 }
+
+// Register the new product type
+ProductFactory.registerProductType('Electronics', Electronics);
+ProductFactory.registerProductType('Clothing', Clothing);
 
 export default ProductFactory;
