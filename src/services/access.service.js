@@ -221,7 +221,7 @@ class AccessService {
       privateKey: keyStore.privateKey,
     });
 
-    // update token
+    // Update token
     await keyStore.updateOne({
       $set: {
         refreshToken: tokens.refreshToken,
