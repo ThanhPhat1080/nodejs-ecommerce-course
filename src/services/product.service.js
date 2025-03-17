@@ -28,7 +28,11 @@ class Product {
   }
 
   async updateProduct(productId) {
-    return await productModel.updateOne({ _id: productId }, { ...this });
+    return await ProductRepo.updateProductById({
+      product_id: productId,
+      payload: { ...this },
+      model: productModel,
+    });
   }
 }
 
@@ -70,6 +74,18 @@ class Clothing extends Product {
 
     return newProduct;
   }
+
+  async updateProduct(productId) {
+    if (this.product_attributes) {
+      await ProductRepo.updateProductById({
+        product_id: productId,
+        payload: { ...this.product_attributes },
+        model: clothingModel,
+      });
+    }
+
+    return await super.updateProduct(productId);
+  }
 }
 
 class ProductServices {
@@ -82,6 +98,15 @@ class ProductServices {
     }
 
     return await new ProductClass(payload).createProduct();
+  }
+
+  static async updateProduct(productId, payload) {
+    const ProductClass = this.registry.get(payload.product_type);
+    if (!ProductClass) {
+      throw new BadRequestError('Invalid product type: ' + payload.product_type);
+    }
+
+    return await new ProductClass(payload).updateProduct(productId);
   }
 
   static registerProductType(type, ProductClass) {
@@ -109,6 +134,20 @@ class ProductServices {
 
   static async searchProductsByUser(keyword) {
     return await ProductRepo.searchProducts(keyword, { isPublished: true, isDraft: false });
+  }
+
+  static async findAllProducts({ limit = 50, sort = 'ctime', page = 1, filter = { isPublished: true } }) {
+    return await ProductRepo.findAllProducts({
+      select: ['product_name', 'product_thumb', 'product_price', 'product_type'],
+      limit,
+      sort,
+      page,
+      filter,
+    });
+  }
+
+  static async findProduct({ product_id, unselect = [] }) {
+    return await ProductRepo.findProduct({ product_id, unselect: [...unselect, '__v'] });
   }
 
   ///////////////////// PUT //////////////////////////////////////////

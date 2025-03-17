@@ -1,6 +1,7 @@
 'use strict';
 
 import { Types } from 'mongoose';
+import { getSelectData, getUnselectData } from '../../utils/index.js';
 import { productModel } from '../product.model.js';
 
 export const findAllDraftProductsForShop = async ({ product_shop, limit, skip }) => {
@@ -71,4 +72,33 @@ export const searchProducts = async (keyword, { isPublished = true, isDraft = fa
     .sort({ score: { $meta: 'textScore' } })
     .lean()
     .exec();
+};
+
+export const findAllProducts = async ({
+  select = [],
+  limit = 50,
+  sort = 'ctime',
+  page = 1,
+  filter = { isPublished: true },
+}) => {
+  const skip = (page - 1) * limit;
+  const sortBy = sort === 'ctime' ? { _id: -1 } : { _id: 1 };
+  const product = await productModel
+    .find(filter)
+    .sort(sortBy)
+    .skip(skip)
+    .limit(limit)
+    .select(getSelectData(select))
+    .lean()
+    .exec();
+
+  return { product, skip, limit, page, total: product.length };
+};
+
+export const findProduct = async ({ product_id, unselect = [] }) => {
+  return await productModel.findById(product_id).select(getUnselectData(unselect)).lean().exec();
+};
+
+export const updateProductById = async ({ product_id, payload, model, isNew = true }) => {
+  return await model.findByIdAndUpdate(product_id, payload, { new: isNew }).lean().exec();
 };

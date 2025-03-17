@@ -2,6 +2,7 @@
 
 import { Created, SuccessResponse } from '../core/success.response.js';
 import ProductServices from '../services/product.service.js';
+import { removeNullUndefinedProps } from '../utils/index.js';
 
 class ProductController {
   static async createProduct(req, res) {
@@ -14,10 +15,23 @@ class ProductController {
     }).send(res);
   }
 
+  //////////////////////////////////////// PATCH ///////////////////////////////////
+  static async updateProduct(req, res) {
+    const updateData = removeNullUndefinedProps({
+      ...req.body,
+      product_shop: req.user.userId,
+    });
+
+    return new SuccessResponse({
+      message: 'Update product success!',
+      metadata: await ProductServices.updateProduct(req.params.product_id, updateData),
+    }).send(res);
+  }
+
   // static async getProduct(req, res) {
   //   try {
   //     const { product_id } = req.params;
-  //     const product = ProductServices.getProduct(product_id);
+  //     const product = await ProductServices.getProduct(product_id);
 
   //     if (!product) {
   //       throw new NotFoundError('Product not found');
@@ -53,8 +67,6 @@ class ProductController {
   /////////////////////////////////////// QUERY //////////////////////////////////////////
   /**
    * @description Get all draft products for shop
-  /**
-   * @description Get all draft products for shop
    * @param {*} req
    * @param {*} res
    */
@@ -76,6 +88,23 @@ class ProductController {
     return new SuccessResponse({
       message: 'Search products success!',
       metadata: await ProductServices.searchProductsByUser(req.params.keyword),
+    }).send(res);
+  }
+
+  static async findAllProducts(req, res) {
+    return new SuccessResponse({
+      message: 'Get all products success!',
+      metadata: await ProductServices.findAllProducts(req.query),
+    }).send(res);
+  }
+
+  static async findProduct(req, res) {
+    return new SuccessResponse({
+      message: 'Get product success!',
+      metadata: await ProductServices.findProduct({
+        product_id: req.params.product_id,
+        unselect: req.query.unselect.split(','),
+      }),
     }).send(res);
   }
 }

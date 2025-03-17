@@ -8,8 +8,12 @@ import { asyncHandler } from '../../helpers/common.js';
 const productRouter = express.Router();
 
 productRouter.get('/search/:keyword', asyncHandler(productController.searchProductsByUser));
+productRouter.get('/all', asyncHandler(productController.findAllProducts));
+productRouter.get('/:product_id', asyncHandler(productController.findProduct));
+
 productRouter.use(authentication);
 
+productRouter.patch('/:product_id', asyncHandler(productController.updateProduct));
 productRouter.post('/', asyncHandler(productController.createProduct));
 productRouter.post('/publish/:product_id', asyncHandler(productController.publishProductByShop));
 productRouter.post('/unpublish/:product_id', asyncHandler(productController.unpublishProductByShop));
