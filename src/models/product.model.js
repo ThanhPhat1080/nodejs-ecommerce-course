@@ -145,9 +145,8 @@ const clothingSchema = new Schema(
 
 // Product Document middleware
 productSchema.pre('save', function (next) {
-  console.log('thissss', this.product_name);
   this.product_slug = slugify(this.product_name, { lower: true });
-  return next();
+  next();
 });
 
 export const productModel = model(DOCUMENT_NAME, productSchema);
