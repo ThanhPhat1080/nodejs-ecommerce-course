@@ -1,5 +1,6 @@
 import { BadRequestError } from '../core/error.response.js';
 import { clothingModel, electronicsModel, productModel } from '../models/product.model.js';
+import * as InventoryRepo from '../models/repositories/inventory.repo.js';
 import * as ProductRepo from '../models/repositories/product.repo.js';
 
 class Product {
@@ -24,7 +25,20 @@ class Product {
   }
 
   async createProduct(productId) {
-    return await productModel.create({ ...this, _id: productId });
+    const newProduct = await productModel.create({ ...this, _id: productId });
+    if (!newProduct) {
+      throw new BadRequestError('Product not created');
+    }
+
+    // Add product to inventory
+    InventoryRepo.insertInventory({
+      productId: newProduct._id,
+      shopId: this.product_shop,
+      stock: this.product_quantity,
+      location: 'Da Nang',
+    });
+
+    return newProduct;
   }
 
   async updateProduct(productId) {

@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import { Types } from 'mongoose';
 
 const getInfoData = ({ fields = [], object = {} }) => {
   return _.pick(object, fields);
@@ -28,4 +29,8 @@ const removeNullUndefinedProps = (obj) => {
   );
 };
 
-export { getInfoData, getSelectData, getUnselectData, removeNullUndefinedProps };
+const convertToMongooesObjectId = (id) => {
+  return new Types.ObjectId(id);
+};
+
+export { convertToMongooesObjectId, getInfoData, getSelectData, getUnselectData, removeNullUndefinedProps };

@@ -28,7 +28,10 @@ export default [
     },
 
     rules: {
-      'prettier/prettier': ['error', { endOfLine: 'auto', singleQuote: true, parser: 'flow' }],
+      'prettier/prettier': [
+        'error',
+        { endOfLine: 'auto', singleQuote: true, parser: 'flow' },
+      ],
       'no-unused-vars': 'warn',
       'no-console': 'warn',
       'func-names': 'off',

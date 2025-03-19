@@ -2,6 +2,7 @@
 import express from 'express';
 import { apiKey, permission } from '../auth/checkAuth.js';
 import accessRouter from './access/index.js';
+import discountRouter from './discount/index.js';
 import productRouter from './product/index.js';
 
 const router = express.Router();
@@ -14,5 +15,6 @@ router.use(permission('0000'));
 
 router.use('/v1/api', accessRouter);
 router.use('/v1/api/product', productRouter);
+router.use('/v1/api/discount', discountRouter);
 
 export default router;
