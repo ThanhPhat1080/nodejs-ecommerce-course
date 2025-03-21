@@ -17,57 +17,53 @@ import { convertToMongooesObjectId } from '../utils/index.js';
  */
 
 class DiscountService {
-  static async createDiscountCode({
-    name,
-    description,
-    type,
-    value,
-    code,
-    startDate,
-    endDate,
-    maxUses,
-    usesCount,
-    usersUsed,
-    maxUsesPerUser,
-    minOrderValue,
+  static async createNewDiscount({
+    discount_name,
+    discount_description,
+    discount_type,
+    discount_value,
+    discount_code,
+    discount_start_date,
+    discount_end_date,
+    discount_max_uses,
+    discount_uses_count,
+    discount_users_used,
+    discount_max_uses_per_user,
+    discount_min_order_value,
     shopId,
-    isActive,
-    appliesTo = 'all',
+    discount_is_active,
+    discount_applies_to = 'all',
     productIds,
   }) {
-    if (new Date(startDate) > new Date(endDate)) {
+    if (new Date(discount_start_date) > new Date(discount_end_date)) {
       throw new BadRequestError('"Start Date" must be before "End Date"!');
     }
-    console.log('shopId', shopId);
-    const foundDiscount = await discountModel
-      .findOne({
-        discount_code: code,
-        discount_shopId: convertToMongooesObjectId(shopId),
-      })
-      .lean()
-      .exec();
-    console.log('foundDiscount', foundDiscount);
+    const foundDiscount = await checkDiscountExists({
+      discount_code,
+      discount_shopId: convertToMongooesObjectId(shopId),
+    });
+
     if (foundDiscount && foundDiscount.discount_is_active) {
       throw new BadRequestError('Discount code is already exists!');
     }
 
     const newDiscount = await discountModel.create({
-      discount_name: name,
-      discount_description: description,
-      discount_type: type,
-      discount_code: code,
-      discount_value: value,
-      discount_start_date: new Date(startDate),
-      discount_end_date: new Date(endDate),
-      discount_max_uses: maxUses,
-      discount_uses_count: usesCount,
-      discount_users_used: usersUsed,
-      discount_max_uses_per_user: maxUsesPerUser,
-      discount_min_order_value: minOrderValue || 0,
+      discount_name,
+      discount_description,
+      discount_type,
+      discount_code,
+      discount_value,
+      discount_start_date: new Date(discount_start_date),
+      discount_end_date: new Date(discount_end_date),
+      discount_max_uses,
+      discount_uses_count,
+      discount_users_used,
+      discount_max_uses_per_user,
+      discount_min_order_value: discount_min_order_value || 0,
       discount_shopId: convertToMongooesObjectId(shopId),
-      discount_is_active: isActive,
-      discount_applies_to: appliesTo,
-      discount_product_ids: appliesTo === 'all' ? [] : productIds,
+      discount_is_active,
+      discount_applies_to,
+      discount_product_ids: discount_applies_to === 'all' ? [] : productIds,
     });
 
     return newDiscount;
@@ -172,13 +168,14 @@ class DiscountService {
     }
 
     // Check gia tri toi thieu
-    let totalOrder = 0;
+    // TODO: Get product_price correctly from DB instead of from client's body request
+    let totalOrderPrice = 0;
     if (discount_min_order_value > 0) {
-      totalOrder = products.reduce((acc, product) => {
-        return acc + product.product_price * product.product_quantity;
+      totalOrderPrice = products.reduce((acc, product) => {
+        return acc + product.product_price * product.quantity;
       }, 0);
 
-      if (totalOrder < discount_min_order_value) {
+      if (totalOrderPrice < discount_min_order_value) {
         throw new BadRequestError(
           'Order value is too low! Discount requires a minium order value of ' + discount_min_order_value,
         );
@@ -186,12 +183,12 @@ class DiscountService {
     }
 
     // Check discount amount
-    const amount = discount_type === 'fixed_amount' ? discount_value : (totalOrder * discount_value) / 100;
+    const amount = discount_type === 'fixed_amount' ? discount_value : (totalOrderPrice * discount_value) / 100;
 
     return {
-      totalOrder,
+      totalOrderPrice,
       discountAmount: amount,
-      totalPrice: totalOrder - amount,
+      totalPrice: totalOrderPrice - amount,
     };
   }
 

@@ -30,7 +30,7 @@ const removeNullUndefinedProps = (obj) => {
 };
 
 const convertToMongooesObjectId = (id) => {
-  return new Types.ObjectId(id);
+  return new Types.ObjectId(id.toString());
 };
 
 export { convertToMongooesObjectId, getInfoData, getSelectData, getUnselectData, removeNullUndefinedProps };

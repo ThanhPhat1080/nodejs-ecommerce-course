@@ -12,6 +12,6 @@ discountRouter.get('/amount', asyncHandler(DiscountController.getDiscountAmount)
 
 discountRouter.use(authenticationV2);
 
-discountRouter.post('/', asyncHandler(DiscountController.createDiscountCode));
+discountRouter.post('/', asyncHandler(DiscountController.createNewDiscount));
 
 export default discountRouter;

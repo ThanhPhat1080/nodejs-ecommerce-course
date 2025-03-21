@@ -4,10 +4,10 @@ import { SuccessResponse } from '../core/success.response.js';
 import discountService from '../services/discount.service.js';
 
 class DiscountController {
-  static async createDiscountCode(req, res) {
+  static async createNewDiscount(req, res) {
     return new SuccessResponse({
       message: 'Successful code generations',
-      metadata: await discountService.createDiscountCode({
+      metadata: await discountService.createNewDiscount({
         ...req.body,
         shopId: req.user.userId,
       }),
@@ -40,7 +40,7 @@ class DiscountController {
 
   static async getDiscountAmount(req, res) {
     return new SuccessResponse({
-      metadata: await discountService.getDiscountAmount(req.query),
+      metadata: await discountService.getDiscountAmount(req.body),
     }).send(res);
   }
 }
