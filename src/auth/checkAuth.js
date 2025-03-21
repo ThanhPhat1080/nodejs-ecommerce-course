@@ -14,12 +14,12 @@ const apiKey = asyncHandler(async (req, res, next) => {
   const key = req.headers[HEADER.API_KEY]?.toString();
 
   if (!key) {
-    throw new ForbiddenError();
+    throw new ForbiddenError('x-API key is required!');
   }
 
   const objectKey = await ApiKeyService.findById(key);
   if (!objectKey) {
-    throw new ForbiddenError();
+    throw new ForbiddenError('x-API key is invalid!');
   }
 
   req.objectKey = objectKey;
@@ -30,12 +30,12 @@ const apiKey = asyncHandler(async (req, res, next) => {
 const permission = (permission) => {
   return (req, res, next) => {
     if (!req.objectKey.permissions) {
-      return new AuthFailureError();
+      return new AuthFailureError('Missing permission!');
     }
 
     const validPermission = req.objectKey.permissions.includes(permission);
     if (!validPermission) {
-      return new AuthFailureError();
+      return new AuthFailureError("You don't have permission to access this resource!");
     }
 
     return next();

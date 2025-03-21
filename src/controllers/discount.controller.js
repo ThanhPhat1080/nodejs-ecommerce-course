@@ -14,6 +14,15 @@ class DiscountController {
     }).send(res);
   }
 
+  static async getAllDiscountCodes(req, res) {
+    return new SuccessResponse({
+      metadata: await discountService.getAllDiscountCodesByShop({
+        ...req.query,
+        shopId: req.query.shopId,
+      }),
+    }).send(res);
+  }
+
   static async getAllDiscountCodesByShop(req, res) {
     return new SuccessResponse({
       metadata: await discountService.getAllDiscountCodesByShop({
