@@ -2,24 +2,24 @@
 
 import express from 'express';
 import { authentication } from '../../auth/authUtils.js';
-import productController from '../../controllers/product.controller.js';
+import ProductController from '../../controllers/product.controller.js';
 import { asyncHandler } from '../../helpers/common.js';
 
 const productRouter = express.Router();
 
-productRouter.get('/search/:keyword', asyncHandler(productController.searchProductsByUser));
-productRouter.get('/all', asyncHandler(productController.findAllProducts));
-productRouter.get('/:product_id', asyncHandler(productController.findProduct));
+productRouter.get('/search/:keyword', asyncHandler(ProductController.searchProductsByUser));
+productRouter.get('/all', asyncHandler(ProductController.findAllProducts));
+productRouter.get('/:product_id', asyncHandler(ProductController.findProduct));
 
 productRouter.use(authentication);
 
-productRouter.patch('/:product_id', asyncHandler(productController.updateProduct));
-productRouter.post('/', asyncHandler(productController.createProduct));
-productRouter.post('/publish/:product_id', asyncHandler(productController.publishProductByShop));
-productRouter.post('/unpublish/:product_id', asyncHandler(productController.unpublishProductByShop));
+productRouter.patch('/:product_id', asyncHandler(ProductController.updateProduct));
+productRouter.post('/', asyncHandler(ProductController.createProduct));
+productRouter.post('/publish/:product_id', asyncHandler(ProductController.publishProductByShop));
+productRouter.post('/unpublish/:product_id', asyncHandler(ProductController.unpublishProductByShop));
 
 //// QUERY ////
-productRouter.get('/draft/all', asyncHandler(productController.getAllDraftProductsForShop));
-productRouter.get('/published/all', asyncHandler(productController.getAllPublishedProductsForShop));
+productRouter.get('/draft/all', asyncHandler(ProductController.getAllDraftProductsForShop));
+productRouter.get('/published/all', asyncHandler(ProductController.getAllPublishedProductsForShop));
 
 export default productRouter;

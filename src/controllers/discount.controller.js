@@ -1,13 +1,13 @@
 'use strict';
 
 import { SuccessResponse } from '../core/success.response.js';
-import discountService from '../services/discount.service.js';
+import DiscountService from '../services/discount.service.js';
 
 class DiscountController {
   static async createNewDiscount(req, res) {
     return new SuccessResponse({
       message: 'Successful code generations',
-      metadata: await discountService.createNewDiscount({
+      metadata: await DiscountService.createNewDiscount({
         ...req.body,
         shopId: req.user.userId,
       }),
@@ -16,7 +16,7 @@ class DiscountController {
 
   static async getAllDiscountCodes(req, res) {
     return new SuccessResponse({
-      metadata: await discountService.getAllDiscountCodesByShop({
+      metadata: await DiscountService.getAllDiscountCodesByShop({
         ...req.query,
         shopId: req.query.shopId,
       }),
@@ -25,7 +25,7 @@ class DiscountController {
 
   static async getAllDiscountCodesByShop(req, res) {
     return new SuccessResponse({
-      metadata: await discountService.getAllDiscountCodesByShop({
+      metadata: await DiscountService.getAllDiscountCodesByShop({
         ...req.query,
         shopId: req.user.userId,
       }),
@@ -34,13 +34,13 @@ class DiscountController {
 
   static async getAllDiscountCodesWithProduct(req, res) {
     return new SuccessResponse({
-      metadata: await discountService.getAllDiscountCodesWithProduct(req.query),
+      metadata: await DiscountService.getAllDiscountCodesWithProduct(req.query),
     }).send(res);
   }
 
   static async getDiscountAmount(req, res) {
     return new SuccessResponse({
-      metadata: await discountService.getDiscountAmount(req.body),
+      metadata: await DiscountService.getDiscountAmount(req.body),
     }).send(res);
   }
 }
