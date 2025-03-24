@@ -69,7 +69,7 @@ class CheckoutService {
                 shopId,
                 products: getCorrectInfoProductInCart,
               });
-              console.log('discountAmount', discountAmount);
+
               return discountAmount;
             }),
           )
