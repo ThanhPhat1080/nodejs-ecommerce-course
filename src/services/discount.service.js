@@ -85,7 +85,7 @@ class DiscountService {
       .exec();
 
     if (!foundDiscount || !foundDiscount.discount_is_active) {
-      throw new NotFoundError('Discount not found or not active!');
+      throw new BadRequestError('Discount not found or not active!');
     }
 
     const { discount_applies_to, discount_product_ids } = foundDiscount;
@@ -135,14 +135,14 @@ class DiscountService {
   /**
    * Apply discount code to order
    */
-  static async getDiscountAmount({ discountCodeId, shopId, products }) {
+  static async getDiscountAmount({ discountCode, shopId, products }) {
     const foundDiscount = await checkDiscountExists({
-      discount_code: discountCodeId,
+      discount_code: discountCode,
       discount_shopId: convertToMongooesObjectId(shopId),
     });
 
     if (!foundDiscount) {
-      throw new NotFoundError('Discount code not found!');
+      throw new BadRequestError('Discount code not found!');
     }
 
     const {

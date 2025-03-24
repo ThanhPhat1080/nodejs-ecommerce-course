@@ -1,5 +1,5 @@
 'use strict';
-import { BadRequestError } from '../core/error.response';
+import { BadRequestError } from '../core/error.response.js';
 import * as CartRepo from '../models/repositories/cart.repo.js';
 import * as ProductRepo from '../models/repositories/product.repo.js';
 import DiscountService from './discount.service.js';
@@ -10,7 +10,7 @@ class CheckoutService {
   {
     cartId?,
     userId?,
-    shopOrderIds: [
+    orders: [
       {
         shopId,
         shopDiscountCodes: ["1234ABC"],
@@ -50,9 +50,6 @@ class CheckoutService {
         );
         acc.totalPrice += productInShopPrice;
 
-        /**
-         * Calculate total discount amount
-         */
         let itemCheckout = {
           shopId,
           shopDiscountCodes,
@@ -61,15 +58,22 @@ class CheckoutService {
           priceAfterDiscount: productInShopPrice,
         };
 
-        const productInShopDiscountAmount = shopDiscountCodes.reduce(async (total, discount) => {
-          const discountAmount = await DiscountService.getDiscountAmount({
-            discountCodeId: discount,
-            shopId,
-            products: getCorrectInfoProductInCart,
-          });
-
-          return total + discountAmount;
-        }, 0);
+        /**
+         * Calculate total discount amount
+         */
+        const productInShopDiscountAmount = (
+          await Promise.all(
+            shopDiscountCodes.map(async (discountCode) => {
+              const discountAmount = await DiscountService.getDiscountAmount({
+                discountCode: discountCode,
+                shopId,
+                products: getCorrectInfoProductInCart,
+              });
+              console.log('discountAmount', discountAmount);
+              return discountAmount;
+            }),
+          )
+        ).reduce((total, discount) => total + discount.discountAmount, 0);
         acc.totalDiscount += productInShopDiscountAmount;
 
         // Update the final order to be announce to user
@@ -107,7 +111,7 @@ class CheckoutService {
         }
 
         return {
-          productId: foundProduct.product_id,
+          productId: foundProduct._id,
           price: foundProduct.product_price,
           quantity,
           name: foundProduct.product_name,
@@ -116,3 +120,5 @@ class CheckoutService {
     );
   }
 }
+
+export default CheckoutService;

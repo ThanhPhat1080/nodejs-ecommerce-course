@@ -2,6 +2,7 @@
 
 import { SuccessResponse } from '../core/success.response.js';
 import CartService from '../services/cart.service.js';
+import CheckoutService from '../services/checkout.service.js';
 
 class CartController {
   /**
@@ -41,6 +42,19 @@ class CartController {
     return new SuccessResponse({
       message: 'Get cart success!',
       metadata: await CartService.getCart(req.query),
+    }).send(res);
+  }
+
+  /**
+   * @description Get checkout preview before charge/payment
+   */
+  static async checkoutReview(req, res) {
+    return new SuccessResponse({
+      message: 'Checkout!',
+      metadata: await CheckoutService.checkoutReview({
+        cartId: req.query.cartId,
+        ...req.body,
+      }),
     }).send(res);
   }
 }
