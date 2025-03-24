@@ -168,11 +168,10 @@ class DiscountService {
     }
 
     // Check gia tri toi thieu
-    // TODO: Get product_price correctly from DB instead of from client's body request
     let totalOrderPrice = 0;
     if (discount_min_order_value > 0) {
       totalOrderPrice = products.reduce((acc, product) => {
-        return acc + product.product_price * product.quantity;
+        return acc + product.price * product.quantity;
       }, 0);
 
       if (totalOrderPrice < discount_min_order_value) {

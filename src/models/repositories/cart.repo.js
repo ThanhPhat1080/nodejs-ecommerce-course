@@ -1,5 +1,9 @@
 import cartModel from '../cart.model.js';
 
+export const findCartById = async (cartId) => {
+  return await cartModel.findById(cartId).lean().exec();
+};
+
 export const createUserCartWithProduct = async ({ product, userId }) => {
   const query = { cart_userId: userId, cart_state: 'active' };
 
