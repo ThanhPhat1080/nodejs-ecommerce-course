@@ -1,9 +1,10 @@
 'use strict';
 import { BadRequestError } from '../core/error.response.js';
+import OrderModel from '../models/order.model';
 import * as CartRepo from '../models/repositories/cart.repo.js';
 import * as ProductRepo from '../models/repositories/product.repo.js';
 import DiscountService from './discount.service.js';
-
+import { acquireLock, releaseLock } from './redis.service.js';
 class CheckoutService {
   /**
   User may login or not.
@@ -56,6 +57,7 @@ class CheckoutService {
           priceRaw: productInShopPrice,
           discount: 0,
           priceAfterDiscount: productInShopPrice,
+          itemProducts: getCorrectInfoProductInCart,
         };
 
         /**
@@ -82,7 +84,7 @@ class CheckoutService {
           discount: productInShopDiscountAmount,
           priceAfterDiscount: productInShopPrice - productInShopDiscountAmount,
         };
-        acc.finalOrders.push(itemCheckout);
+        acc.finalCheckoutOrder.push(itemCheckout);
 
         /**
          * Calculate total payment
@@ -96,7 +98,7 @@ class CheckoutService {
         feeShip: 0,
         totalDiscount: 0,
         totalPayment: 0,
-        finalOrders: [],
+        finalCheckoutOrder: [],
       },
     );
   }
@@ -118,6 +120,48 @@ class CheckoutService {
         };
       }),
     );
+  }
+
+  static async orderByUser({ orders, cartId, userId, userAddress = {}, userPayment = {} }) {
+    const { totalPrice, feeShip, totalDiscount, totalPayment, finalCheckoutOrder } = await this.checkoutReview({
+      userId,
+      cartId,
+      orders,
+    });
+
+    // Validate product stock
+    const products = finalCheckoutOrder.flatMap((order) => order.itemProducts);
+    let acquireProducts = [];
+
+    for (let i = 0; i < products.length; i++) {
+      const { productId, quantity } = products[i];
+      const isLocking = await acquireLock({ productId, quantity, cartId });
+
+      acquireProducts.push(isLocking ? true : false);
+      if (isLocking) {
+        await releaseLock(isLocking);
+      }
+    }
+
+    if (acquireProducts.includes(false)) {
+      throw new BadRequestError('Some products could not be locked. Please try again.');
+    }
+
+    // Make order
+    const newOrder = await OrderModel.create({
+      order_userId: userId,
+      order_checkout: finalCheckoutOrder,
+      order_shipping: userAddress,
+      order_payment: userPayment,
+    });
+
+    // If the order is successfully created, remove the purchased products from the cart
+    if (newOrder) {
+      const productIds = products.map((product) => product.productId); // Get the list of purchased product IDs
+      await CartRepo.removeProductsFromCart({ cartId, productIds }); // Call the repository to remove products
+    }
+
+    return newOrder;
   }
 }
 
